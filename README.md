@@ -19,7 +19,7 @@ npm run build
 npm run preview
 ```
 
-Nine tests check all three season schemas, game coverage, derived win/loss totals, historical team names, invalid values, HTTP failures, duplicate game IDs and season mismatch. The build runs TypeScript checks before producing `dist/`.
+Data tests check all three season schemas, game coverage, derived win/loss totals, historical team names, invalid values, HTTP failures, duplicate game IDs and season mismatch. The build runs TypeScript checks before producing `dist/`.
 
 ## Prepare data
 
@@ -39,7 +39,7 @@ The script validates the pinned local source, pairs opposing team records, check
 
 Read [requirements](PROJECT_REQUIREMENTS.md), [data attribution](DATA_SOURCES.md) and [dataset manifest](public/data/manifest.json).
 
-Next implementation milestone (stage 2): weekly Elo-change calculations and tested statistics, followed by a team comparison chart. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
+Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Next milestone (stage 3): connect this engine to team exploration and comparison charts. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
 
 ## Stage 1 verification
 
@@ -47,3 +47,9 @@ Next implementation milestone (stage 2): weekly Elo-change calculations and test
 - Nine Vitest tests passed.
 - Browser checks: default 2014–15 data; Warriors search (67–15); 2012–13 switch and Boston record (41–40, 81 games); empty search and clear action.
 - At a 375px viewport, document width matched viewport width (no page overflow). Full cross-browser/accessibility and performance audits remain release work.
+
+## Stage 2 verification
+
+- 26 tests pass, including 17 analytics tests with hand-worked examples and checks over all three historical seasons.
+- Coverage includes partial weeks, idle weeks, year boundaries, sample SD, short history, zero variance, positive/negative correlation, mismatched grids, weight validation/rounding, additive indices and initial-peak drawdowns.
+- The engine is independent of the Stage 1 dashboard. No new chart or portfolio UI is included yet.
