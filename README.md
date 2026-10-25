@@ -1,6 +1,6 @@
 # Sports-as-a-Portfolio: NBA
 
-Historical NBA analytics project. Stage 1 is implemented with React, TypeScript and Vite: a validated season loader, season selector, searchable team records and responsive dashboard. Stage 3 adds date-filtered exploration, D3 comparison/scatterplot charts and sortable analytical metrics. Portfolio building follows in Stage 4.
+Historical NBA analytics project. Stage 1 is implemented with React, TypeScript and Vite: a validated season loader, season selector, searchable team records and responsive dashboard. Stage 3 adds date-filtered exploration, D3 comparison/scatterplot charts and sortable analytical metrics. Stage 4 adds portfolio allocation controls and historical replay.
 
 ## Run the app
 
@@ -39,7 +39,7 @@ The script validates the pinned local source, pairs opposing team records, check
 
 Read [requirements](PROJECT_REQUIREMENTS.md), [data attribution](DATA_SOURCES.md) and [dataset manifest](public/data/manifest.json).
 
-Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Stage 3 now connects the engine to team exploration and comparison charts. Next milestone (stage 4): portfolio weight controls and replay. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
+Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Stage 3 now connects the engine to team exploration and comparison charts. Stage 4 now adds portfolio weight controls and replay. Next milestone (stage 5): correlation heatmap and local persistence. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
 
 ## Stage 1 verification
 
@@ -64,3 +64,13 @@ Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, 
 - Expand the comparison data table or methodology for exact values and interpretation. Charts use synthetic units and include idle/partial weeks.
 
 Verification: 29 tests pass, including filtered-record and no-game interval checks. Browser checks covered five-team limit, sorting, invalid/empty-game intervals, resetting dates, season resets, keyboard week inspection, scatterpoint activation and the comparison table. At 375px the page has no horizontal overflow; charts/tables scroll inside labelled regions. Desktop inspected at 1440px. Full cross-browser and accessibility audits remain release work.
+
+## Stage 4: portfolio builder and replay
+
+- Build a basket of 1–10 unique teams independently of the comparison selection. Additions start at zero weight. Remove teams or distribute equal weights; displayed equal weights sum exactly to 100%.
+- Weight inputs accept 0–100%. Replay is disabled for empty/invalid inputs, unknown teams or totals outside the documented tolerance. Previous valid results remain visible while editing; a notice distinguishes draft from applied weights.
+- Replay applies fixed exposures to the current evaluation interval. Date changes recompute applied weights; changing season resets the portfolio to the example. Reset restores 50% GSW / 50% CLE. Local saving is planned for Stage 5.
+- Summary shows final index, total point change, weekly volatility, consistency and maximum drawdown with peak/trough dates. Performance and drawdown charts share a keyboard-operable inspection slider and a numeric replay data table.
+- The all-team reference uses the same dates. Interpretation notes explain source rounding, inactivity, partial weeks and team-game exposures. This is retrospective synthetic performance, not monetary profit.
+
+Verification: 34 tests pass, including draft validation, equal weights at every basket size from 1–10, hand-worked replay/reference/drawdown and interval recomputation without mutation. Browser checks covered invalid-total replay disabling, preservation of prior results, valid 75/25 allocations, adding a third team, 33.34/33.33/33.33 equal weights, explicit replay, reset, no-game interval and replay table. Mobile inspected at 375px with no page overflow; desktop inspected at 1440px.
