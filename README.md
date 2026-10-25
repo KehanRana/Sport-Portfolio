@@ -39,7 +39,7 @@ The script validates the pinned local source, pairs opposing team records, check
 
 Read [requirements](PROJECT_REQUIREMENTS.md), [data attribution](DATA_SOURCES.md) and [dataset manifest](public/data/manifest.json).
 
-Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Stage 3 now connects the engine to team exploration and comparison charts. Stage 4 now adds portfolio weight controls and replay. Next milestone (stage 5): correlation heatmap and local persistence. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
+Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Stage 3 now connects the engine to team exploration and comparison charts. Stage 4 now adds portfolio weight controls and replay. Stage 5 adds the correlation heatmap and versioned local saving. Next milestone (stage 6): release verification and deployment. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
 
 ## Stage 1 verification
 
@@ -69,8 +69,18 @@ Verification: 29 tests pass, including filtered-record and no-game interval chec
 
 - Build a basket of 1–10 unique teams independently of the comparison selection. Additions start at zero weight. Remove teams or distribute equal weights; displayed equal weights sum exactly to 100%.
 - Weight inputs accept 0–100%. Replay is disabled for empty/invalid inputs, unknown teams or totals outside the documented tolerance. Previous valid results remain visible while editing; a notice distinguishes draft from applied weights.
-- Replay applies fixed exposures to the current evaluation interval. Date changes recompute applied weights; changing season resets the portfolio to the example. Reset restores 50% GSW / 50% CLE. Local saving is planned for Stage 5.
+- Replay applies fixed exposures to the current evaluation interval. Date changes recompute applied weights; changing season resets the portfolio to the example. Reset restores 50% GSW / 50% CLE. Local saving is implemented in Stage 5.
 - Summary shows final index, total point change, weekly volatility, consistency and maximum drawdown with peak/trough dates. Performance and drawdown charts share a keyboard-operable inspection slider and a numeric replay data table.
 - The all-team reference uses the same dates. Interpretation notes explain source rounding, inactivity, partial weeks and team-game exposures. This is retrospective synthetic performance, not monetary profit.
 
 Verification: 34 tests pass, including draft validation, equal weights at every basket size from 1–10, hand-worked replay/reference/drawdown and interval recomputation without mutation. Browser checks covered invalid-total replay disabling, preservation of prior results, valid 75/25 allocations, adding a third team, 33.34/33.33/33.33 equal weights, explicit replay, reset, no-game interval and replay table. Mobile inspected at 375px with no page overflow; desktop inspected at 1440px.
+
+## Stage 5: correlations and local saving
+
+- Correlation heatmap follows the applied portfolio and evaluation dates. It includes all selected teams, including zero-weight entries. Cells display Pearson correlation, paired-week sample count and an explanation when unavailable. The semantic table is also the numeric/accessible alternative; colours supplement the values.
+- Use **Save applied portfolio** to save the current season, applied date range, comparison teams and last replayed weights on this browser. Unapplied weight edits are excluded. Saving is explicit rather than automatic.
+- Refresh restores the saved configuration after validating schema, analytics version, source checksum, season coverage, team IDs, date bounds and weight totals. Malformed/outdated saves fall back to defaults with an explanation; saving again replaces them.
+- **Reset portfolio** resets the current in-memory allocation; save again to persist that reset. **Clear saved portfolio** removes the application save and resets the current season's dates, comparisons and allocation. A subsequent refresh uses the default season when no save exists. Changing season does not overwrite the saved scenario until explicitly saved.
+- Storage failures are caught. The app continues in memory and reports inability to read/save/clear; a failed write preserves any previous save. Nothing is sent to a server.
+
+Verification: 41 tests pass, including seven storage tests covering roundtrip, malformed state, version/checksum mismatch, invalid teams/dates/weights, blocked access, quota failure and clearing. Browser checks confirmed 75/25 allocation restoration; restoration of 2012–13 with custom start date and Boston comparison selection; one-week N/A heatmap cells; clearing/reset; and no horizontal page overflow at 375px. Release-stage cross-browser/accessibility/performance checks remain outstanding.
