@@ -1,0 +1,10 @@
+import { z } from 'zod';
+const date = z.iso.date();
+const side = z.object({ id: z.string().min(1), franchise: z.string().min(1), score: z.number().int().nonnegative(), eloBefore: z.number().finite(), eloAfter: z.number().finite() });
+export const gameSchema = z.object({ id: z.string(), date, season: z.number().int(), neutralSite: z.boolean(), home: side, away: side });
+export const seasonSchema = z.object({ schemaVersion: z.literal(1), season: z.string(), games: z.array(gameSchema).min(1) });
+export const summarySchema = z.object({ season: z.string(), file: z.string().regex(/^\d{4}-\d{2}\.json$/), games: z.number().int().positive(), teams: z.number().int().positive(), start: date, end: date, teamGameCounts: z.record(z.string(), z.number().int().positive()) });
+export const manifestSchema = z.object({ schemaVersion: z.literal(1), source: z.string(), sourceSha256: z.string(), uniqueGames: z.number().int(), seasons: z.array(summarySchema).min(1) });
+export type Season = z.infer<typeof seasonSchema>;
+export type SeasonSummary = z.infer<typeof summarySchema>;
+export type Manifest = z.infer<typeof manifestSchema>;
