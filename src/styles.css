@@ -792,3 +792,300 @@ footer a {
     font-size: 9px;
   }
 }
+/* Stage 3 exploration */
+.exploration {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.chart-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.chart-panel .panel-heading h2 {
+  font-size: 20px;
+}
+.date-filter {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #edf1e8;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.date-filter > div {
+  flex: 1 0 100%;
+}
+.date-filter p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+.date-filter label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 10px;
+  color: #4c5e4b;
+  flex: 1;
+  min-width: 125px;
+}
+.date-filter input,
+.detail-picker select {
+  padding: 9px;
+  border: 1px solid #b4c2ac;
+  border-radius: 4px;
+  background: white;
+  color: #243c2b;
+  width: 100%;
+}
+.date-filter button,
+.team-detail button,
+.legend button {
+  padding: 10px 12px;
+  border: 1px solid #b4c2ac;
+  border-radius: 4px;
+  background: white;
+  color: #243c2b;
+  font-size: 11px;
+}
+.date-filter .primary {
+  background: #244c36;
+  color: white;
+  border-color: #244c36;
+}
+.date-filter .filter-error {
+  flex-basis: 100%;
+  color: #973c29;
+}
+.legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 26px;
+}
+.legend button {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.legend button span {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+}
+.svg-wrap {
+  padding: 5px 12px;
+}
+.svg-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 160px;
+  overflow: visible;
+}
+.svg-wrap text {
+  font: 11px "DM Sans", sans-serif;
+  fill: #50624e;
+}
+.svg-wrap g[role="button"] {
+  cursor: pointer;
+}
+.svg-wrap g[role="button"]:focus {
+  outline: none;
+}
+.svg-wrap g[role="button"]:focus circle {
+  stroke: #192b23;
+  stroke-width: 4;
+}
+.week-control {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  gap: 10px;
+  padding: 10px 26px;
+}
+.week-control input {
+  width: 100%;
+  accent-color: #326347;
+  min-height: 25px;
+}
+.weekly-details,
+.team-detail {
+  padding: 16px 26px;
+  background: #f6f8f2;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.weekly-details h3,
+.team-detail h3 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+.weekly-details p {
+  margin: 5px 0;
+}
+.weekly-details li {
+  padding: 3px 0;
+}
+.data-alternative,
+.methodology {
+  font-size: 12px;
+  line-height: 1.9;
+  padding: 18px 26px;
+}
+.data-alternative summary,
+.methodology summary,
+.weekly-details summary {
+  cursor: pointer;
+}
+.data-alternative table {
+  margin-top: 15px;
+  min-width: 500px;
+}
+.data-alternative th,
+.data-alternative td {
+  font-size: 10px;
+  white-space: nowrap;
+}
+.data-alternative tbody th {
+  display: table-cell;
+}
+.detail-picker {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 11px;
+  padding: 12px 26px 20px;
+}
+.detail-picker select {
+  width: auto;
+  max-width: 75%;
+  font-size: 12px;
+}
+.team-panel thead button {
+  font: inherit;
+  font-size: 9px;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.exploration .team-panel table {
+  min-width: 680px;
+}
+.exploration .team-panel tbody th {
+  display: table-cell;
+  text-align: left;
+  white-space: normal;
+  min-width: 180px;
+  padding-left: 12px;
+}
+.exploration .team-panel th:first-child {
+  padding-left: 16px;
+}
+.team-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #243c2b;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.team-link:hover {
+  text-decoration: underline;
+}
+.exploration input[type="checkbox"] {
+  accent-color: #326347;
+  width: 17px;
+  height: 17px;
+}
+.methodology {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #edf1e8;
+  color: #4e624a;
+}
+.team-detail button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .idea-panel .court {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .date-filter {
+    padding: 16px;
+  }
+  .chart-panel .panel-heading h2 {
+    font-size: 18px;
+  }
+  .legend,
+  .weekly-details,
+  .team-detail,
+  .data-alternative,
+  .detail-picker {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .svg-wrap {
+    overflow-x: auto;
+  }
+  .svg-wrap svg {
+    min-width: 520px;
+  }
+  .methodology {
+    padding: 16px;
+  }
+  .detail-picker {
+    flex-wrap: wrap;
+  }
+  .detail-picker select {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .sidebar {
+    display: flex;
+  }
+  .date-filter button {
+    flex: 1;
+  }
+  .date-filter label {
+    min-width: 110px;
+  }
+  .date-filter input {
+    font-size: 12px;
+  }
+  .svg-wrap {
+    padding-bottom: 12px;
+  }
+}
+.interval-note {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: -6px 4px 0;
+}
+.exploration{width:100%}.chart-panel,.date-filter{min-width:0}.svg-wrap{max-width:100%}
+.exploration .team-panel table{min-width:820px}
