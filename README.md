@@ -1,6 +1,6 @@
 # Sports-as-a-Portfolio: NBA
 
-Historical NBA analytics project. Stage 1 is implemented with React, TypeScript and Vite: a validated season loader, season selector, searchable team records and responsive dashboard. D3 visualisations and portfolio analytics follow in later stages.
+Historical NBA analytics project. Stage 1 is implemented with React, TypeScript and Vite: a validated season loader, season selector, searchable team records and responsive dashboard. Stage 3 adds date-filtered exploration, D3 comparison/scatterplot charts and sortable analytical metrics. Portfolio building follows in Stage 4.
 
 ## Run the app
 
@@ -39,7 +39,7 @@ The script validates the pinned local source, pairs opposing team records, check
 
 Read [requirements](PROJECT_REQUIREMENTS.md), [data attribution](DATA_SOURCES.md) and [dataset manifest](public/data/manifest.json).
 
-Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Next milestone (stage 3): connect this engine to team exploration and comparison charts. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
+Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, fixed-weight portfolios, neutral benchmark and drawdown calculations. See [analytics integration and conventions](src/analytics/README.md). Stage 3 now connects the engine to team exploration and comparison charts. Next milestone (stage 4): portfolio weight controls and replay. Use published FiveThirtyEight Elo values initially. Rating performance is expressed in synthetic units, not betting profit.
 
 ## Stage 1 verification
 
@@ -53,3 +53,14 @@ Stage 2 is implemented: pure weekly Elo-change aggregation, summary statistics, 
 - 26 tests pass, including 17 analytics tests with hand-worked examples and checks over all three historical seasons.
 - Coverage includes partial weeks, idle weeks, year boundaries, sample SD, short history, zero variance, positive/negative correlation, mismatched grids, weight validation/rounding, additive indices and initial-peak drawdowns.
 - The engine is independent of the Stage 1 dashboard. No new chart or portfolio UI is included yet.
+
+## Stage 3: team exploration
+
+- Apply an inclusive date range or reset to the full season. Invalid draft dates preserve the last valid analysis. Changing seasons resets the interval and comparisons.
+- Select up to five teams using table checkboxes. Golden State and Cleveland are selected initially. Remove selections through the legend or team detail.
+- Compare performance indices starting at 100. Move across the chart or use the keyboard-accessible inspection slider for weekly Elo change, index, game counts and expandable game results.
+- Inspect risk versus improvement through clickable/keyboard-operable scatterplot points or the team dropdown. Its numeric alternative is the team metrics table, including mean weekly change.
+- Search teams and sort by name, total Elo change, weekly sample volatility or consistency. N/A values stay last. A no-game interval retains every team with zero games.
+- Expand the comparison data table or methodology for exact values and interpretation. Charts use synthetic units and include idle/partial weeks.
+
+Verification: 29 tests pass, including filtered-record and no-game interval checks. Browser checks covered five-team limit, sorting, invalid/empty-game intervals, resetting dates, season resets, keyboard week inspection, scatterpoint activation and the comparison table. At 375px the page has no horizontal overflow; charts/tables scroll inside labelled regions. Desktop inspected at 1440px. Full cross-browser and accessibility audits remain release work.
