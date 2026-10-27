@@ -1,4 +1,7 @@
-import { useMemo } from "react";
+import styles from "./Correlation.module.css";
+import { bindClasses } from "../styles/classes";
+const cx = bindClasses(styles);
+import { useId, useMemo } from "react";
 import {
   correlation,
   type WeeklyDataset,
@@ -11,36 +14,40 @@ export default function Correlation({
   dataset: WeeklyDataset;
   weights: Weight[];
 }) {
+  const hatchPrefix = useId().replace(/:/g, "");
   const ids = weights.map((w) => w.teamId);
   const matrix = useMemo(
     () =>
       ids.map((left) =>
         ids.map((right) =>
-          correlation(dataset.teams[left], dataset.teams[right])
-        )
+          correlation(dataset.teams[left], dataset.teams[right]),
+        ),
       ),
-    [dataset, weights]
+    [dataset, weights],
   );
   return (
-    <section className="correlation-panel" aria-labelledby="correlation-title">
-      <h3 id="correlation-title">How your teams move together</h3>
+    <section
+      className={cx("correlation-panel")}
+      aria-labelledby="correlation-title"
+    >
+      <h3 id="correlation-title">Correlation between teams</h3>
       <p>
-        Correlation of weekly Elo changes for the last replayed portfolio ·{" "}
+        Correlation of weekly Elo changes for the last replayed portfolio ;{" "}
         {dataset.start} to {dataset.end}. All selected teams, including
         zero-weight entries.
       </p>
-      <div className="correlation-scale">
-        <span>−1 · Opposite</span>
-        <span>0 · No linear relationship</span>
-        <span>+1 · Together</span>
+      <div className={cx("correlation-scale")}>
+        <span>−1; Opposite</span>
+        <span>0; No linear relationship</span>
+        <span>+1; Together</span>
       </div>
       <div
-        className="table-scroll"
+        className={cx("table-scroll")}
         role="region"
         aria-label="Portfolio correlation heatmap"
         tabIndex={0}
       >
-        <table className="heatmap">
+        <table className={cx("heatmap")}>
           <caption>
             Paired calendar weeks, including inactivity. Each cell shows Pearson
             correlation and sample count.
@@ -67,14 +74,43 @@ export default function Correlation({
                       : "Needs at least 10 weeks";
                   const bg =
                     result.value === null
-                      ? "#eef0ea"
-                      : result.value < 0
-                      ? `rgba(166, 80, 38, ${
-                          0.08 + Math.abs(result.value) * 0.22
-                        })`
-                      : `rgba(41, 105, 70, ${0.08 + result.value * 0.22})`;
+                      ? "var(--key)"
+                      : `color-mix(in srgb, var(${result.value < 0 ? "--corr-neg" : "--corr-pos"}) ${Math.abs(result.value) * 28}%, var(--corr-zero))`;
                   return (
-                    <td key={other} style={{ background: bg }}>
+                    <td
+                      key={other}
+                      className={cx(
+                        result.value === null ? "unavailable-cell" : "",
+                      )}
+                      aria-label={`${id} and ${other}: ${result.value === null ? unavailable : result.value.toFixed(2)}, ${result.observations} paired weeks`}
+                      style={{ background: bg }}
+                    >
+                      {result.value === null ? (
+                        <svg
+                          className={cx("cell-hatch")}
+                          aria-hidden="true"
+                          width="100%"
+                          height="100%"
+                        >
+                          <defs>
+                            <pattern
+                              id={`${hatchPrefix}-${i}-${j}`}
+                              width="9"
+                              height="9"
+                              patternUnits="userSpaceOnUse"
+                              patternTransform="rotate(135)"
+                            >
+                              <rect width="9" height="9" fill="var(--panel)" />
+                              <rect width="2.5" height="9" fill="var(--line)" />
+                            </pattern>
+                          </defs>
+                          <rect
+                            width="100%"
+                            height="100%"
+                            fill={`url(#${hatchPrefix}-${i}-${j})`}
+                          />
+                        </svg>
+                      ) : null}
                       <strong>
                         {result.value === null
                           ? "N/A"

@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import styles from "./App.module.css";
+import { bindClasses } from "./styles/classes";
+const cx = bindClasses(styles);
+import { useEffect, useState } from "react";
 import { loadManifest, loadSeason } from "./data/load";
-import { buildTeamRows } from "./data/teams";
 import Exploration from "./components/Exploration";
 import { restorePortfolio, type SavedPortfolio } from "./storage/portfolio";
 import type { Manifest, Season, SeasonSummary } from "./data/schema";
@@ -9,15 +11,6 @@ type LoadState<T> =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; data: T };
-const formatNumber = new Intl.NumberFormat("en-AU");
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("en-AU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${date}T00:00:00Z`));
-}
 function LoadMessage({
   state,
   retry,
@@ -26,8 +19,19 @@ function LoadMessage({
   retry: () => void;
 }) {
   return (
-    <div className="load-message" role={state === "error" ? "alert" : "status"}>
-      <span className="status-dot" />
+    <div
+      className={cx("load-message")}
+      role={state === "error" ? "alert" : "status"}
+      aria-busy={state === "loading"}
+    >
+      <span className={cx("status-dot")} />
+      {state === "loading" ? (
+        <div className={cx("loading-skeleton")} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      ) : null}
       {state === "loading" ? (
         "Loading historical season…"
       ) : (
@@ -67,10 +71,6 @@ function SeasonBrowser({
       });
     return () => controller.abort();
   }, [summary, attempt]);
-  const teams = useMemo(
-    () => (state.status === "ready" ? buildTeamRows(state.data) : []),
-    [state]
-  );
   if (state.status !== "ready")
     return (
       <>
@@ -79,108 +79,18 @@ function SeasonBrowser({
           retry={() => setAttempt((value) => value + 1)}
         />
         {state.status === "error" ? (
-          <p className="error-detail">{state.message}</p>
+          <p className={cx("error-detail")}>{state.message}</p>
         ) : null}
       </>
     );
   return (
-    <>
-      <section className="stats" aria-label="Season overview">
-        <article>
-          <span className="eyebrow">THE UNIVERSE</span>
-          <strong>
-            {teams.length}
-            <small> teams</small>
-          </strong>
-          <p>Teams in this season’s dataset.</p>
-        </article>
-        <article>
-          <span className="eyebrow">FULL-SEASON DATASET</span>
-          <strong>{formatNumber.format(state.data.games.length)}</strong>
-          <p>Validated, with every matchup counted once.</p>
-        </article>
-        <article>
-          <span className="eyebrow">DATASET COVERAGE</span>
-          <strong className="date-stat">
-            {formatDate(summary.start).replace(/ \d{4}$/, "")} <span>→</span>{" "}
-            {formatDate(summary.end).replace(/ \d{4}$/, "")}
-          </strong>
-          <p>
-            {summary.season.slice(0, 4)}–
-            {Number(summary.season.slice(0, 4)) + 1} · Regular season only
-          </p>
-        </article>
-      </section>
-      <div className="workspace">
-        <Exploration
-          season={state.data}
-          summary={summary}
-          manifest={manifest}
-          saved={saved}
-          storageMessage={storageMessage}
-        />
-        <aside className="sidebar">
-          <section className="idea-panel">
-            <span className="eyebrow">A NEW LENS ON THE GAME</span>
-            <div className="court" aria-hidden="true">
-              <div className="court-circle" />
-              <div className="court-line" />
-            </div>
-            <h2>
-              Think like a fan.
-              <br />
-              Explore like an analyst.
-            </h2>
-            <p>
-              Which teams improve? Which stay consistent? What happens when you
-              put them together?
-            </p>
-            <p className="idea-note">
-              Compare teams, choose your allocation and replay its historical
-              performance.
-            </p>
-          </section>
-          <section className="source-panel">
-            <div className="source-top">
-              <span className="eyebrow">KNOW YOUR DATA</span>
-              <span className="verified">✓ Validated</span>
-            </div>
-            <h3>History, with context.</h3>
-            <p>
-              Published FiveThirtyEight Elo and game results. This is a
-              historical snapshot, not live NBA coverage.
-            </p>
-            <dl>
-              <div>
-                <dt>Coverage</dt>
-                <dd>2012–2015</dd>
-              </div>
-              <div>
-                <dt>Source</dt>
-                <dd>FiveThirtyEight</dd>
-              </div>
-              <div>
-                <dt>Licence</dt>
-                <dd>CC BY 4.0</dd>
-              </div>
-            </dl>
-            {summary.season === "2012-13" ? (
-              <p className="coverage-note">
-                Boston and Indiana played 81 games each. Their April 16 matchup
-                was cancelled and not rescheduled.
-              </p>
-            ) : null}
-            <a
-              href="https://github.com/fivethirtyeight/data/tree/master/nba-elo"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Explore the original dataset <span aria-hidden="true">↗</span>
-            </a>
-          </section>
-        </aside>
-      </div>
-    </>
+    <Exploration
+      season={state.data}
+      summary={summary}
+      manifest={manifest}
+      saved={saved}
+      storageMessage={storageMessage}
+    />
   );
 }
 export default function App() {
@@ -191,6 +101,7 @@ export default function App() {
   const [saved, setSaved] = useState<SavedPortfolio | null>(null);
   const [storageMessage, setStorageMessage] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     setManifest({ status: "loading" });
@@ -204,7 +115,7 @@ export default function App() {
         setSelected((current) =>
           data.seasons.some((s) => s.season === current)
             ? current
-            : data.seasons[data.seasons.length - 1].season
+            : data.seasons[data.seasons.length - 1].season,
         );
       })
       .catch((error: unknown) => {
@@ -223,40 +134,24 @@ export default function App() {
       : undefined;
   return (
     <>
-      <a className="skip-link" href="#main">
+      <a className={cx("skip-link")} href="#main">
         Skip to content
       </a>
-      <header className="header">
-        <a className="brand" href="./" aria-label="Courtfolio home">
-          <span className="brand-mark" aria-hidden="true">
-            c.
-          </span>
-          courtfolio
+      <header className={cx(`header ${filtersOpen ? "filters-open" : ""}`)}>
+        <a className={cx("brand")} href="./" aria-label="Courtfolio home">
+          Courtfolio<span className={cx("brand-period")}>.</span>
         </a>
-        <div className="header-label">THE NBA PORTFOLIO LAB</div>
-        <span className="build-label">
-          <span />
-          STAGE 05 · CONNECTIONS
-        </span>
-      </header>
-      <main id="main">
-        <div className="hero">
-          <div>
-            <div className="hero-kicker">
-              <span />
-              SPORTS, THROUGH A DIFFERENT LENS
-            </div>
-            <h1>
-              Beyond the <em>box score.</em>
-            </h1>
-            <p>
-              See NBA teams as a universe of assets.
-              <br className="mobile-break" /> Explore the history. Find your
-              perspective.
-            </p>
-          </div>
-          <div className="season-control">
-            <label htmlFor="season">SELECT SEASON</label>
+        <button
+          className={cx("filters-toggle")}
+          aria-expanded={filtersOpen}
+          aria-controls="global-filters"
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          Filters
+        </button>
+        <div id="global-filters" className={cx("global-filters")}>
+          <label className={cx("season-control")} htmlFor="season">
+            Season
             <select
               id="season"
               value={selected}
@@ -265,21 +160,44 @@ export default function App() {
                 setSelected(event.target.value);
                 setSaved(null);
                 setStorageMessage(
-                  "New season: defaults loaded. Save to replace your previous portfolio."
+                  "New season: defaults loaded. Save to replace your previous portfolio.",
                 );
               }}
             >
               {manifest.status === "ready" ? (
                 [...manifest.data.seasons].reverse().map((s) => (
                   <option key={s.season} value={s.season}>
-                    {s.season.replace("-", " / ")}
+                    {s.season.replace("-", "–")}
                   </option>
                 ))
               ) : (
                 <option value="2014-15">Loading…</option>
               )}
             </select>
-            <span>NBA · REGULAR SEASON</span>
+          </label>
+          <div id="date-controls" />
+        </div>
+      </header>
+      <main id="main">
+        <div className={cx("hero")}>
+          <div>
+            <h1>{selected.replace("-", "–")}</h1>
+            <p>
+              Compare team improvement, explore consistency and replay your own
+              allocation.
+            </p>
+          </div>
+          <div className={cx("hero-note")}>
+            <span className={cx("tag")}>
+              Retrospective replay, not a prediction
+            </span>
+            <p>
+              30 NBA teams across three historical seasons
+              <br />
+              2012–13 to 2014–15
+              <br />
+              Synthetic units. Real game history.
+            </p>
           </div>
         </div>
         {summary && manifest.status === "ready" ? (
@@ -298,7 +216,7 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span className="footer-brand">
+        <span className={cx("footer-brand")}>
           courtfolio<span> / An independent analytics project</span>
         </span>
         <p>
@@ -306,8 +224,8 @@ export default function App() {
           <a href="https://github.com/fivethirtyeight/data/tree/master/nba-elo">
             FiveThirtyEight
           </a>{" "}
-          · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>{" "}
-          · Filtered and transformed.{" "}
+          ; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>{" "}
+          ; Filtered and transformed.{" "}
           <a href={`${import.meta.env.BASE_URL}data-sources.md`}>
             Transformation notes
           </a>

@@ -1,0 +1,123 @@
+.table-scroll {
+  overflow: auto;
+  max-width: 100%;
+  scrollbar-gutter: stable;
+  max-height: 320px;
+}
+.correlation-panel {
+  grid-column: 1;
+  grid-row: 5;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding: 28px 0;
+}
+.correlation-panel h3 {
+  font-size: var(--fs-2xl);
+}
+.correlation-panel p {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  line-height: 1.8;
+}
+.correlation-scale {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 12px;
+  font-size: var(--fs-sm);
+}
+.heatmap {
+  border-collapse: separate;
+  border-spacing: 3px;
+  margin: 16px 0;
+}
+.heatmap td {
+  min-width: 100px;
+  text-align: center;
+  border: 0;
+  padding: 14px 8px;
+}
+.heatmap th {
+  text-align: center;
+}
+.heatmap td strong {
+  font-size: var(--fs-lg);
+}
+.heatmap small {
+  display: block;
+  font-size: var(--fs-sm);
+  margin-top: 6px;
+}
+@media (max-width: 1000px) {
+  .correlation-panel h3 {
+    font-size: var(--fs-xl);
+  }
+}
+@media (max-width: 760px) {
+  .correlation-panel {
+    order: 6;
+  }
+  .table-scroll {
+    max-height: 300px;
+  }
+  .correlation-scale {
+    font-size: var(--fs-sm);
+    flex-wrap: wrap;
+  }
+}
+.correlation-panel {
+  grid-column: 1;
+  grid-row: 4;
+  min-width: 0;
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+}
+.correlation-panel h3 {
+  font-size: var(--fs-xl);
+}
+.correlation-scale {
+  background: var(--panel);
+  border-radius: var(--r-pill);
+  display: flex;
+  gap: var(--s-3);
+  font-size: var(--fs-xs);
+  justify-content: space-between;
+}
+.correlation-scale span:first-child {
+  color: var(--ball-text);
+}
+.correlation-scale span:last-child {
+  color: var(--paint);
+}
+.heatmap td {
+  border-radius: var(--r-inner);
+}
+.heatmap small {
+  font-size: var(--fs-xs);
+}
+.heatmap .unavailable-cell {
+}
+.table-scroll {
+  border-radius: var(--r-inner);
+}
+@media (max-width: 1099px) {
+  .correlation-panel {
+    order: 6;
+    width: 100%;
+  }
+  .correlation-scale {
+    flex-wrap: wrap;
+  }
+}
+.heatmap td {
+  position: relative;
+  isolation: isolate;
+}
+.cell-hatch {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.heatmap .unavailable-cell {
+  background-image: none !important;
+}

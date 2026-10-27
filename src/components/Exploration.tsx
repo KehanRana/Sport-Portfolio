@@ -1,4 +1,10 @@
-import { useMemo, useState } from "react";
+import { useChartScale } from "./charts/useChartScale";
+import styles from "./Exploration.module.css";
+import { bindClasses } from "../styles/classes";
+const cx = bindClasses(styles);
+import { useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import SeriesMarker from "./charts/SeriesMarker";
 import Portfolio from "./Portfolio";
 import {
   clearPortfolio,
@@ -15,7 +21,9 @@ import {
   type ExploredTeam,
 } from "../analytics/exploration";
 import type { Metric } from "../analytics/engine";
-const colours = ["#326347", "#b45b31", "#426db1", "#8a4f91", "#80701b"];
+const colours = [1, 2, 3, 4, 5].map((slot) => `var(--series-${slot})`);
+const signed = (value: number) =>
+  (value > 0 ? "↑ +" : value < 0 ? "↓ " : "") + value.toFixed(2);
 const fmt = (value: number) => value.toFixed(2);
 function metric(value: Metric) {
   return value.value === null ? "N/A" : fmt(value.value);
@@ -24,18 +32,18 @@ function reason(value: Metric) {
   return value.reason === "zero-variance"
     ? "Zero variance"
     : value.reason === "insufficient-history"
-    ? "Insufficient weekly history"
-    : undefined;
+      ? "Insufficient weekly history"
+      : undefined;
 }
 type SortKey = "name" | "change" | "volatility" | "consistency";
 function sortValue(team: ExploredTeam, key: SortKey) {
   return key === "name"
     ? team.name
     : key === "change"
-    ? team.analysis.totalChange
-    : key === "volatility"
-    ? team.analysis.volatility.value
-    : team.analysis.consistency.value;
+      ? team.analysis.totalChange
+      : key === "volatility"
+        ? team.analysis.volatility.value
+        : team.analysis.consistency.value;
 }
 export default function Exploration({
   season,
@@ -79,8 +87,8 @@ export default function Exploration({
           comparison: selected,
           weights,
         },
-        manifest
-      )
+        manifest,
+      ),
     );
   }
   function clearSaved() {
@@ -97,11 +105,11 @@ export default function Exploration({
   const [cursor, setCursor] = useState<number | null>(null);
   const data = useMemo(
     () => exploreSeason(season, range.start, range.end),
-    [season, range]
+    [season, range],
   );
   const shown = data.teams
     .filter((t) =>
-      `${t.name} ${t.id}`.toLowerCase().includes(search.trim().toLowerCase())
+      `${t.name} ${t.id}`.toLowerCase().includes(search.trim().toLowerCase()),
     )
     .sort((a, b) => {
       const x = sortValue(a, sort.key),
@@ -132,15 +140,15 @@ export default function Exploration({
         new Date(Date.parse(`${week}T00:00:00Z`) + 6 * 86400000)
           .toISOString()
           .slice(0, 10) &&
-      selected.some((id) => g.home.id === id || g.away.id === id)
+      selected.some((id) => g.home.id === id || g.away.id === id),
   );
   function toggle(id: string) {
     setSelected((current) =>
       current.includes(id)
         ? current.filter((x) => x !== id)
         : current.length < 5
-        ? [...current, id]
-        : current
+          ? [...current, id]
+          : current,
     );
   }
   const changeSort = (key: SortKey) =>
@@ -149,109 +157,102 @@ export default function Exploration({
       asc: current.key === key ? !current.asc : key === "name",
     }));
   return (
-    <div className="exploration">
-      <form
-        className="date-filter"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const issue = validateRange(
-            draft.start,
-            draft.end,
-            summary.start,
-            summary.end
-          );
-          setError(issue);
-          if (!issue) {
-            setRange(draft);
-            setCursor(null);
-          }
-        }}
-        noValidate
-      >
-        <div>
-          <span className="eyebrow">EVALUATION WINDOW</span>
-          <p>One interval across every metric and chart.</p>
-        </div>
-        <label>
-          From
-          <input
-            type="date"
-            min={summary.start}
-            max={summary.end}
-            value={draft.start}
-            onInput={(e) =>
-              setDraft({ ...draft, start: e.currentTarget.value })
+    <div className={cx("exploration")}>
+      {createPortal(
+        <form
+          className={cx("date-filter")}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const issue = validateRange(
+              draft.start,
+              draft.end,
+              summary.start,
+              summary.end,
+            );
+            setError(issue);
+            if (!issue) {
+              setRange(draft);
+              setCursor(null);
             }
-          />
-        </label>
-        <label>
-          To
-          <input
-            type="date"
-            min={summary.start}
-            max={summary.end}
-            value={draft.end}
-            onInput={(e) => setDraft({ ...draft, end: e.currentTarget.value })}
-          />
-        </label>
-        <button className="primary" type="submit">
-          Apply dates
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const full = { start: summary.start, end: summary.end };
-            setRange(full);
-            setDraft(full);
-            setError(null);
-            setCursor(null);
           }}
+          noValidate
         >
-          Full season
-        </button>
-        {error ? (
-          <p className="filter-error" role="alert">
-            {error} Showing the last valid interval.
-          </p>
-        ) : null}
-      </form>
-      <p className="interval-note" role="status">
-        Active interval: {range.start} to {range.end} ·{" "}
+          <label>
+            From
+            <input
+              type="date"
+              aria-invalid={!!error}
+              aria-describedby={error ? "date-error" : undefined}
+              min={summary.start}
+              max={summary.end}
+              value={draft.start}
+              onInput={(e) =>
+                setDraft({ ...draft, start: e.currentTarget.value })
+              }
+            />
+          </label>
+          <label>
+            To
+            <input
+              type="date"
+              aria-invalid={!!error}
+              aria-describedby={error ? "date-error" : undefined}
+              min={summary.start}
+              max={summary.end}
+              value={draft.end}
+              onInput={(e) =>
+                setDraft({ ...draft, end: e.currentTarget.value })
+              }
+            />
+          </label>
+          <button className={cx("primary")} type="submit">
+            Apply dates
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const full = { start: summary.start, end: summary.end };
+              setRange(full);
+              setDraft(full);
+              setError(null);
+              setCursor(null);
+            }}
+          >
+            Full season
+          </button>
+          {error ? (
+            <p id="date-error" className={cx("filter-error")} role="alert">
+              {error} Showing the last valid interval.
+            </p>
+          ) : null}
+        </form>,
+        document.getElementById("date-controls")!,
+      )}
+      <p className={cx("interval-note")} role="status">
+        Active interval: {range.start} to {range.end} ;{" "}
         {
           season.games.filter(
-            (g) => g.date >= range.start && g.date <= range.end
+            (g) => g.date >= range.start && g.date <= range.end,
           ).length
         }{" "}
-        games · {data.weekly.weeks.length} calendar weeks. Boundary weeks may be
+        games; {data.weekly.weeks.length} calendar weeks. Boundary weeks may be
         partial.
+        {summary.season === "2012-13"
+          ? " Boston and Indiana each played 81 games after a cancelled matchup."
+          : ""}
         {data.weekly.weeks.length < 10
           ? " Consistency needs at least 10 weeks."
           : ""}
       </p>
-      <section className="chart-panel" aria-labelledby="comparison-title">
-        <div className="panel-heading">
+      <section className={cx("chart-panel")} aria-labelledby="comparison-title">
+        <div className={cx("panel-heading")}>
           <div>
-            <span className="eyebrow">01 / COMPARE</span>
-            <h2 id="comparison-title">
-              Different teams. Different trajectories.
-            </h2>
+            <h2 id="comparison-title">Performance index</h2>
             <p>
-              Performance index · synthetic units · starts at 100 ·{" "}
-              {range.start} to {range.end}
+              Synthetic units, starting at 100. Evaluation dates: {range.start}{" "}
+              to {range.end}. n = {data.weekly.weeks.length} weeks
             </p>
           </div>
-        </div>
-        <div className="legend">
-          {compared.map((team, i) => (
-            <button
-              key={team.id}
-              onClick={() => toggle(team.id)}
-              aria-label={`Remove ${team.name} from comparison`}
-            >
-              <span style={{ background: colours[i] }} />
-              {i + 1}. {team.name} ×
-            </button>
-          ))}
         </div>
         {compared.length ? (
           <>
@@ -259,8 +260,11 @@ export default function Exploration({
               teams={compared}
               onWeek={setCursor}
               observation={observation}
+              start={range.start}
+              end={range.end}
+              weekly={data.weekly.teams}
             />
-            <label className="week-control">
+            <label className={cx("week-control")}>
               Inspect week starting {week}
               <input
                 aria-label="Inspection week"
@@ -271,14 +275,15 @@ export default function Exploration({
                 onChange={(e) => setCursor(Number(e.target.value))}
               />
             </label>
-            <div className="weekly-details">
+            <div className={cx("weekly-details")}>
               <h3>Week of {week}</h3>
               {compared.map((team) => {
                 const point = data.weekly.teams[team.id][observation];
                 return (
                   <p key={team.id}>
-                    <strong>{team.id}</strong> · {fmt(point.change)} Elo points
-                    · index {fmt(team.analysis.points[observation + 1].index)} ·{" "}
+                    <strong>{team.id}</strong>; {signed(point.change)} Elo
+                    points; index{" "}
+                    {fmt(team.analysis.points[observation + 1].index)} ;{" "}
                     {point.games} games{!point.games ? " (inactive)" : ""}
                   </p>
                 );
@@ -289,9 +294,9 @@ export default function Exploration({
                   <ul>
                     {games.map((g) => (
                       <li key={g.id}>
-                        {g.date} · {g.away.id} {g.away.score} — {g.home.id}{" "}
+                        {g.date}; {g.away.id} {g.away.score} vs {g.home.id}{" "}
                         {g.home.score}
-                        {g.neutralSite ? " · neutral site" : ""}
+                        {g.neutralSite ? "; neutral site" : ""}
                       </li>
                     ))}
                   </ul>
@@ -300,10 +305,10 @@ export default function Exploration({
                 )}
               </details>
             </div>
-            <details className="data-alternative">
-              <summary>View comparison data table</summary>
+            <details className={cx("data-alternative")}>
+              <summary>View as table</summary>
               <div
-                className="table-scroll"
+                className={cx("table-scroll")}
                 role="region"
                 aria-label="Weekly comparison data"
                 tabIndex={0}
@@ -323,13 +328,27 @@ export default function Exploration({
                   </thead>
                   <tbody>
                     {data.weekly.weeks.map((w, i) => (
-                      <tr key={w}>
-                        <th scope="row">{w}</th>
+                      <tr
+                        key={w}
+                        className={cx(i === observation ? "cursor-row" : "")}
+                      >
+                        <th scope="row">
+                          {w}
+                          {w < range.start ||
+                          new Date(Date.parse(w + "T00:00:00Z") + 6 * 86400000)
+                            .toISOString()
+                            .slice(0, 10) > range.end
+                            ? " (partial week)"
+                            : ""}
+                        </th>
                         {compared.map((t) => (
                           <td key={t.id}>
                             {fmt(t.analysis.points[i + 1].index)} /{" "}
-                            {fmt(data.weekly.teams[t.id][i].change)} /{" "}
+                            {signed(data.weekly.teams[t.id][i].change)} /{" "}
                             {data.weekly.teams[t.id][i].games}
+                            {data.weekly.teams[t.id][i].games === 0
+                              ? " (inactive)"
+                              : ""}
                           </td>
                         ))}
                       </tr>
@@ -340,29 +359,36 @@ export default function Exploration({
             </details>
           </>
         ) : (
-          <p className="empty">
-            Select at least one team in the table to compare.
+          <p className={cx("empty")}>
+            No teams selected. Add up to five teams from the table to compare
+            them.
           </p>
         )}
       </section>
-      <section className="chart-panel">
-        <div className="panel-heading">
+      <section className={cx("chart-panel scatter-panel")}>
+        <div className={cx("panel-heading")}>
           <div>
-            <span className="eyebrow">02 / FIND YOUR PERSPECTIVE</span>
             <h2>Risk versus improvement</h2>
             <p>
-              Right = more weekly variation. Higher = greater mean weekly
-              improvement. Choose a team to inspect it.
+              n = {data.weekly.weeks.length} weeks. Right = more weekly
+              variation. Higher = greater mean weekly improvement. Choose a team
+              to inspect it.
             </p>
           </div>
         </div>
-        <Scatter teams={data.teams} active={detail} choose={setDetail} />
-        <div className="team-detail" aria-live="polite">
+        <Scatter
+          teams={data.teams}
+          active={detail}
+          selected={selected}
+          choose={setDetail}
+        />
+        <div className={cx("team-detail")} aria-live="polite">
           <h3>{active.name}</h3>
           <p>
-            {active.games} games · Elo change {fmt(active.analysis.totalChange)}{" "}
-            · weekly volatility {metric(active.analysis.volatility)} ·
-            consistency {metric(active.analysis.consistency)}
+            {active.games} games; n = {data.weekly.weeks.length} weeks; Elo
+            change {fmt(active.analysis.totalChange)} ; weekly volatility{" "}
+            {metric(active.analysis.volatility)} ; consistency{" "}
+            {metric(active.analysis.consistency)}
           </p>
           <button
             disabled={!selected.includes(active.id) && selected.length === 5}
@@ -383,17 +409,16 @@ export default function Exploration({
         onClear={clearSaved}
         saveMessage={saveMessage}
       />
-      <section className="team-panel" aria-labelledby="team-title">
-        <div className="panel-heading">
+      <section className={cx("team-panel")} aria-labelledby="team-title">
+        <div className={cx("panel-heading")}>
           <div>
-            <span className="eyebrow">04 / EXPLORE</span>
             <h2 id="team-title">
-              The team universe <span className="count">30</span>
+              The team universe <span className={cx("count")}>30</span>
             </h2>
             <p>Select up to five teams. {selected.length}/5 selected.</p>
           </div>
-          <label className="search">
-            <span className="sr-only">Search teams</span>
+          <label className={cx("search")}>
+            <span className={cx("sr-only")}>Search teams</span>
             <input
               type="search"
               placeholder="Find a team…"
@@ -402,18 +427,18 @@ export default function Exploration({
             />
           </label>
         </div>
-        <p className="table-status" role="status">
-          {shown.length} of 30 teams · {range.start} to {range.end} ·{" "}
+        <p className={cx("table-status")} role="status">
+          {shown.length} of 30 teams; {range.start} to {range.end} ;{" "}
           {data.weekly.weeks.length} weeks
         </p>
         <div
-          className="table-scroll"
+          className={cx("table-scroll")}
           role="region"
           aria-label="Team metrics"
           tabIndex={0}
         >
           <table>
-            <caption className="sr-only">
+            <caption className={cx("sr-only")}>
               Team metrics for the selected interval. Elo and volatility are
               points; consistency is unannualised.
             </caption>
@@ -436,14 +461,14 @@ export default function Exploration({
                         {key === "name"
                           ? "Team"
                           : key === "change"
-                          ? "Elo change"
-                          : key === "volatility"
-                          ? "Weekly volatility"
-                          : "Consistency"}
+                            ? "Elo change"
+                            : key === "volatility"
+                              ? "Weekly volatility"
+                              : "Consistency"}
                         {sort.key === key ? (sort.asc ? " ↑" : " ↓") : ""}
                       </button>
                     </th>
-                  )
+                  ),
                 )}
                 <th>Mean weekly change</th>
                 <th>Games</th>
@@ -452,33 +477,54 @@ export default function Exploration({
             </thead>
             <tbody>
               {shown.map((team) => (
-                <tr key={team.id}>
+                <tr
+                  key={team.id}
+                  className={cx(
+                    selected.includes(team.id) ? "selected-row" : "",
+                  )}
+                >
                   <td>
-                    <input
-                      type="checkbox"
-                      aria-label={`Compare ${team.name}`}
-                      checked={selected.includes(team.id)}
-                      disabled={
-                        !selected.includes(team.id) && selected.length === 5
-                      }
-                      onChange={() => toggle(team.id)}
-                    />
+                    <label className={cx("checkbox-target")}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Compare ${team.name}`}
+                        checked={selected.includes(team.id)}
+                        disabled={
+                          !selected.includes(team.id) && selected.length === 5
+                        }
+                        onChange={() => toggle(team.id)}
+                      />
+                    </label>
                   </td>
                   <th scope="row">
                     <button
-                      className="team-link"
+                      className={cx("team-link")}
                       onClick={() => setDetail(team.id)}
                     >
                       {team.name}
                       <small>{team.id}</small>
                     </button>
                   </th>
-                  <td>{fmt(team.analysis.totalChange)}</td>
+                  <td
+                    data-trend={team.analysis.totalChange < 0 ? "loss" : "gain"}
+                  >
+                    {signed(team.analysis.totalChange)}
+                  </td>
                   <td title={reason(team.analysis.volatility)}>
                     {metric(team.analysis.volatility)}
+                    {team.analysis.volatility.value === null ? (
+                      <small className={cx("metric-reason")}>
+                        {reason(team.analysis.volatility)}
+                      </small>
+                    ) : null}
                   </td>
                   <td title={reason(team.analysis.consistency)}>
                     {metric(team.analysis.consistency)}
+                    {team.analysis.consistency.value === null ? (
+                      <small className={cx("metric-reason")}>
+                        {reason(team.analysis.consistency)}
+                      </small>
+                    ) : null}
                   </td>
                   <td>{metric(team.analysis.meanChange)}</td>
                   <td>{team.games}</td>
@@ -490,14 +536,14 @@ export default function Exploration({
             </tbody>
           </table>
           {!shown.length ? (
-            <div className="empty">
+            <div className={cx("empty")}>
               No matching teams.{" "}
               <button onClick={() => setSearch("")}>Clear search</button>
             </div>
           ) : null}
         </div>
       </section>
-      <details className="methodology">
+      <details className={cx("methodology")}>
         <summary>How to read these metrics</summary>
         <p>
           Weekly changes use published FiveThirtyEight Elo, grouped
@@ -526,15 +572,23 @@ function Comparison({
   teams,
   onWeek,
   observation,
+  start,
+  end,
+  weekly,
 }: {
   teams: ExploredTeam[];
   onWeek: (index: number) => void;
   observation: number;
+  start: string;
+  end: string;
+  weekly: Record<string, { week: string; games: number }[]>;
 }) {
+  const chart = useChartScale(900);
+  const hatchId = useId().replace(/:/g, "");
   const width = 900,
     height = 300,
     left = 65,
-    right = 25,
+    right = 150,
     top = 24,
     bottom = 48;
   const points = teams.flatMap((t) => t.analysis.points);
@@ -548,12 +602,35 @@ function Comparison({
   const x = scaleLinear()
     .domain([0, teams[0].analysis.points.length - 1])
     .range([left, width - right]);
+  const labelPositions = new Map<string, number>();
+  const sorted = [...teams].sort(
+    (a, b) =>
+      y(a.analysis.points.at(-1)!.index) - y(b.analysis.points.at(-1)!.index),
+  );
+  let previousLabel = top - 23;
+  sorted.forEach((team) => {
+    const next = Math.max(
+      previousLabel + 23,
+      y(team.analysis.points.at(-1)!.index),
+    );
+    labelPositions.set(team.id, next);
+    previousLabel = next;
+  });
+  let nextLabel = height - bottom + 13;
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const id = sorted[i].id;
+    const label = Math.min(labelPositions.get(id)!, nextLabel - 23);
+    labelPositions.set(id, label);
+    nextLabel = label;
+  }
   const draw = line<{ index: number }>()
     .x((_, i) => x(i))
     .y((p) => y(p.index));
   return (
     <div
-      className="svg-wrap"
+      ref={chart.ref}
+      style={chart.style}
+      className={cx("svg-wrap")}
       role="region"
       tabIndex={0}
       aria-label="Scrollable comparison chart"
@@ -561,17 +638,73 @@ function Comparison({
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Team performance comparison. Each line starts at 100; numbered endpoints correspond to the legend. Use the inspection slider or the data table for exact values."
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            onWeek(
+              Math.max(
+                0,
+                Math.min(
+                  teams[0].analysis.observations - 1,
+                  observation + (e.key === "ArrowRight" ? 1 : -1),
+                ),
+              ),
+            );
+          }
+        }}
+        aria-label="Team performance comparison. Each line starts at 100; each line is directly labelled with its team and has a distinct dash pattern. Use the inspection slider or the data table for exact values."
         onPointerMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
           const i = Math.round(
-            x.invert(((e.clientX - rect.left) / rect.width) * width)
+            x.invert(((e.clientX - rect.left) / rect.width) * width),
           );
           onWeek(
-            Math.max(0, Math.min(teams[0].analysis.observations - 1, i - 1))
+            Math.max(0, Math.min(teams[0].analysis.observations - 1, i - 1)),
           );
         }}
       >
+        <defs>
+          <pattern
+            id={hatchId}
+            width="9"
+            height="9"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(135)"
+          >
+            <rect width="9" height="9" fill="var(--panel)" />
+            <rect
+              width="2.5"
+              height="9"
+              fill="var(--paint)"
+              fillOpacity="0.15"
+            />
+          </pattern>
+        </defs>
+        {teams[0].analysis.points.slice(1).map((point, i) => {
+          const monday = new Date(point.date + "T00:00:00Z");
+          monday.setUTCDate(
+            monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7),
+          );
+          const week = weekly[teams[0].id][i].week;
+          const partial =
+            week < start ||
+            new Date(Date.parse(week + "T00:00:00Z") + 6 * 86400000)
+              .toISOString()
+              .slice(0, 10) > end ||
+            teams.some((team) => weekly[team.id][i].games === 0);
+          return partial ? (
+            <rect
+              key={i}
+              x={x(i)}
+              y={top}
+              width={x(i + 1) - x(i)}
+              height={height - bottom - top}
+              fill={`url(#${hatchId})`}
+              opacity="0.5"
+            />
+          ) : null;
+        })}
         {y.ticks(5).map((tick) => (
           <g key={tick}>
             <line
@@ -579,7 +712,7 @@ function Comparison({
               x2={width - right}
               y1={y(tick)}
               y2={y(tick)}
-              stroke="#e0e5da"
+              stroke="var(--court-line)"
             />
             <text x={left - 10} y={y(tick) + 4} textAnchor="end">
               {tick}
@@ -591,16 +724,35 @@ function Comparison({
           x2={width - right}
           y1={y(100)}
           y2={y(100)}
-          stroke="#7c8778"
-          strokeDasharray="4 4"
+          stroke="var(--court-line)"
+          strokeWidth="1.5"
         />
+        <text x={left + 20} y={y(100) - 10}>
+          Start (100)
+        </text>
         <line
           x1={x(observation + 1)}
           x2={x(observation + 1)}
           y1={top}
           y2={height - bottom}
-          stroke="#8b9685"
+          stroke="var(--ink)"
           strokeDasharray="2 4"
+        />
+        <rect
+          x={left}
+          y={top}
+          width={width - right - left}
+          height={height - bottom - top}
+          fill="none"
+          stroke="var(--court-line)"
+        />
+        <circle
+          cx={left}
+          cy={y(100)}
+          r="13"
+          fill="var(--panel)"
+          stroke="var(--paint)"
+          strokeWidth="1.5"
         />
         {teams.map((team, i) => (
           <g key={team.id}>
@@ -609,14 +761,29 @@ function Comparison({
               fill="none"
               stroke={colours[i]}
               strokeWidth="2.5"
-              strokeDasharray={i % 2 ? "7 3" : undefined}
+              strokeDasharray={
+                [undefined, "9 4", "3 4", "12 4 2 4", "6 3 2 3"][i]
+              }
+            />
+            <SeriesMarker
+              slot={i}
+              x={width - right}
+              y={y(team.analysis.points.at(-1)!.index)}
+              color={colours[i]}
+            />
+            <line
+              x1={width - right}
+              y1={y(team.analysis.points.at(-1)!.index)}
+              x2={width - right + 14}
+              y2={labelPositions.get(team.id)! - 4}
+              stroke={colours[i]}
             />
             <text
-              x={width - right + 5}
-              y={y(team.analysis.points.at(-1)!.index) + 4}
+              x={width - right + 18}
+              y={labelPositions.get(team.id)}
               fill={colours[i]}
             >
-              {i + 1}
+              {team.id} {fmt(team.analysis.points.at(-1)!.index)}
             </text>
           </g>
         ))}
@@ -638,16 +805,19 @@ function Comparison({
 function Scatter({
   teams,
   active,
+  selected,
   choose,
 }: {
   teams: ExploredTeam[];
   active: string;
+  selected: string[];
   choose: (id: string) => void;
 }) {
+  const chart = useChartScale(900);
   const plotted = teams.filter(
     (t) =>
       t.analysis.volatility.value !== null &&
-      t.analysis.meanChange.value !== null
+      t.analysis.meanChange.value !== null,
   );
   const x = scaleLinear()
     .domain([
@@ -664,7 +834,9 @@ function Scatter({
   return (
     <>
       <div
-        className="svg-wrap"
+        ref={chart.ref}
+        style={chart.style}
+        className={cx("svg-wrap")}
         role="region"
         tabIndex={0}
         aria-label="Scrollable risk versus improvement chart"
@@ -674,46 +846,51 @@ function Scatter({
           role="group"
           aria-label="Risk versus improvement scatterplot. Focus or select a labelled team point to inspect details."
         >
-          {y.ticks(5).map((tick) => (
-            <g key={tick}>
-              <line
-                x1={65}
-                x2={840}
-                y1={y(tick)}
-                y2={y(tick)}
-                stroke="#e0e5da"
-              />
-              <text x={55} y={y(tick) + 4} textAnchor="end">
+          <g
+            role="img"
+            aria-label="Weekly volatility in Elo points versus mean weekly Elo change. Use the team buttons, selector or View as table to inspect values."
+          >
+            {y.ticks(5).map((tick) => (
+              <g key={tick}>
+                <line
+                  x1={65}
+                  x2={840}
+                  y1={y(tick)}
+                  y2={y(tick)}
+                  stroke="var(--court-line)"
+                />
+                <text x={55} y={y(tick) + 4} textAnchor="end">
+                  {tick}
+                </text>
+              </g>
+            ))}
+            <line
+              x1={65}
+              x2={840}
+              y1={y(0)}
+              y2={y(0)}
+              stroke="var(--line-strong)"
+              strokeDasharray="4 4"
+            />
+            {x.ticks(6).map((tick) => (
+              <text key={tick} x={x(tick)} y={276} textAnchor="middle">
                 {tick}
               </text>
-            </g>
-          ))}
-          <line
-            x1={65}
-            x2={840}
-            y1={y(0)}
-            y2={y(0)}
-            stroke="#7c8778"
-            strokeDasharray="4 4"
-          />
-          {x.ticks(6).map((tick) => (
-            <text key={tick} x={x(tick)} y={276} textAnchor="middle">
-              {tick}
+            ))}
+            <text x={452} y={306} textAnchor="middle">
+              Weekly volatility (Elo points)
             </text>
-          ))}
-          <text x={452} y={306} textAnchor="middle">
-            Weekly volatility (Elo points)
-          </text>
-          <text transform="translate(16 145) rotate(-90)" textAnchor="middle">
-            Mean weekly change (Elo points)
-          </text>
+            <text transform="translate(16 145) rotate(-90)" textAnchor="middle">
+              Mean weekly change (Elo points)
+            </text>
+          </g>
           {plotted.map((team) => (
             <g
               key={team.id}
               role="button"
               tabIndex={0}
               aria-label={`Inspect ${team.name}: volatility ${fmt(
-                team.analysis.volatility.value!
+                team.analysis.volatility.value!,
               )}, mean weekly change ${fmt(team.analysis.meanChange.value!)}`}
               onClick={() => choose(team.id)}
               onFocus={() => choose(team.id)}
@@ -727,10 +904,17 @@ function Scatter({
               <circle
                 cx={x(team.analysis.volatility.value!)}
                 cy={y(team.analysis.meanChange.value!)}
-                r={active === team.id ? 9 : 6}
-                fill={active === team.id ? "#b45b31" : "#326347"}
-                stroke="#fff"
+                r={16}
+                opacity={0}
+                fill={active === team.id ? "var(--ball-text)" : "var(--paint)"}
+                stroke="var(--panel)"
                 strokeWidth={2}
+              />
+              <SeriesMarker
+                slot={Math.max(0, selected.indexOf(team.id))}
+                x={x(team.analysis.volatility.value!)}
+                y={y(team.analysis.meanChange.value!)}
+                color={active === team.id ? "var(--ball-text)" : "var(--paint)"}
               />
               <title>{team.name}</title>
               {active === team.id ? (
@@ -746,12 +930,50 @@ function Scatter({
         </svg>
       </div>
       {!plotted.length ? (
-        <p className="empty">
+        <p className={cx("empty")}>
           At least two calendar weeks are needed to plot volatility. Expand the
           date range.
         </p>
       ) : null}
-      <label className="detail-picker">
+      <details className={cx("data-alternative")}>
+        <summary>View as table</summary>
+        <div
+          className={cx("table-scroll")}
+          role="region"
+          aria-label="Risk versus improvement data"
+          tabIndex={0}
+        >
+          <table>
+            <caption>
+              Risk versus improvement, Elo points per calendar week.
+            </caption>
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Weekly volatility (Elo points)</th>
+                <th>Mean weekly change (Elo points)</th>
+                <th>Sample weeks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teams.map((team) => (
+                <tr key={team.id}>
+                  <th scope="row">{team.name}</th>
+                  <td>
+                    {metric(team.analysis.volatility)}
+                    {team.analysis.volatility.value === null ? (
+                      <small>{reason(team.analysis.volatility)}</small>
+                    ) : null}
+                  </td>
+                  <td>{metric(team.analysis.meanChange)}</td>
+                  <td>{team.analysis.observations}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <label className={cx("detail-picker")}>
         Inspect a team{" "}
         <select value={active} onChange={(e) => choose(e.target.value)}>
           {teams.map((team) => (

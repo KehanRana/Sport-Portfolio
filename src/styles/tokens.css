@@ -1,0 +1,95 @@
+:root {
+  /* Surfaces */
+  --cloud: #eceef2; /* page background */
+  --panel: #fafafb; /* panels, table rows */
+  --key: #dce4f7; /* selected rows, portfolio builder surface */
+
+  /* Text */
+  --ink: #0a1428; /* primary text, deep navy */
+  --ink-muted: #4a5468; /* secondary text (about 7:1 on --panel) */
+
+  /* Brand */
+  --paint: #1f4fd8; /* portfolio, actions, positive change (about 6.4:1 on --panel) */
+  --ball: #f26a21; /* loud accent: replay block, drawdown fills (graphics/large type only) */
+  --ball-text: #a93b08; /* orange used as small text on light surfaces (about 5:1) */
+
+  /* Structure */
+  --line: #d3d7df; /* decorative rules, court lines */
+  --line-strong: #68748a; /* input borders, focus-adjacent edges (about 3.6:1) */
+  --focus: #0a1428; /* focus ring colour; use with an offset white ring */
+
+  /* Series (comparison of up to 5 teams). Each also gets its own dash pattern + end marker. */
+  --series-1: #0a1428;
+  --series-2: #0e8f7e;
+  --series-3: #b5179e;
+  --series-4: #8a6d00;
+  --series-5: #6b4fd6;
+
+  /* Diverging scale for correlation heatmap: -1 orange, 0 panel, +1 blue */
+  --corr-neg: #f26a21;
+  --corr-zero: #fafafb;
+  --corr-pos: #1f4fd8;
+
+  /* Radius by hierarchy (not one radius for everything) */
+  --r-pill: 999px; /* controls, chips, tooltips, nav */
+  --r-panel: 28px; /* main panels */
+  --r-inner: 12px; /* nested items, table wrappers */
+  --r-input: 10px;
+
+  /* Type */
+  --font-display: "Archivo Variable", "Archivo", "Arial Narrow", sans-serif;
+  --font-body:
+    "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  /* Type scale (px values; use rem in practice) */
+  --fs-xs: 0.8125rem; /* 13: footnotes, axis ticks (never below 12) */
+  --fs-sm: 0.875rem; /* 14 */
+  --fs-md: 1rem; /* 16: body */
+  --fs-lg: 1.25rem; /* 20 */
+  --fs-xl: 1.75rem; /* 28: panel titles */
+  --fs-2xl: 2.75rem; /* 44: stat numerals (mobile) */
+  --fs-hero: clamp(4rem, 14vw, 11rem); /* season title */
+
+  /* Spacing (4px base) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+
+  /* Elevation: only floating things get a shadow */
+  --shadow-float: 0 6px 24px rgba(10, 20, 40, 0.14);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-replay: 900ms;
+
+  /* Layout */
+  --content-max: 1360px;
+  --measure: 70ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-replay: 0ms;
+  }
+}
+
+:root {
+  --chalk: var(--cloud);
+  --court-line: var(--line);
+  --muted: var(--ink-muted);
+  --orange-text: var(--ball-text);
+  --orange: var(--ball);
+  --radius-input: var(--r-input);
+  --radius-chip: var(--r-pill);
+  --series-circle: 0;
+}
+:root {
+  --r-none: 0;
+}
